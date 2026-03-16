@@ -1,0 +1,509 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>March Survivor Pool</title>
+<link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@400;600;700&family=Barlow:wght@400;500&display=swap" rel="stylesheet"/>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --bg:#0d1117;--surface:#161b22;--surface2:#21262d;--border:#30363d;
+  --text:#e6edf3;--muted:#8b949e;--accent:#f78166;--green:#3fb950;
+  --red:#f85149;--gold:#d29922;--blue:#58a6ff;
+  --font-display:'Barlow Condensed',sans-serif;
+  --font-body:'Barlow',sans-serif;
+}
+body{background:var(--bg);color:var(--text);font-family:var(--font-body);min-height:100vh}
+h1,h2,h3{font-family:var(--font-display)}
+
+.app{max-width:900px;margin:0 auto;padding:16px}
+
+.header{text-align:center;padding:24px 0 20px;border-bottom:1px solid var(--border);margin-bottom:24px}
+.header h1{font-size:42px;font-weight:700;letter-spacing:1px;color:var(--accent)}
+.header p{color:var(--muted);font-size:14px;margin-top:4px}
+
+.tabs{display:flex;gap:2px;margin-bottom:24px;background:var(--surface);border-radius:10px;padding:4px}
+.tab{flex:1;padding:10px;text-align:center;font-family:var(--font-display);font-size:15px;font-weight:600;letter-spacing:.5px;border-radius:7px;cursor:pointer;border:none;background:transparent;color:var(--muted);transition:all .15s}
+.tab.active{background:var(--surface2);color:var(--text)}
+
+.section{display:none}
+.section.visible{display:block}
+
+.day-banner{background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:16px 20px;margin-bottom:20px;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:12px}
+.day-label{font-family:var(--font-display);font-size:28px;font-weight:700;color:var(--accent)}
+.day-sub{font-size:13px;color:var(--muted);margin-top:2px}
+.lock-info{font-size:13px;color:var(--gold);font-weight:500}
+
+.card{background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:20px;margin-bottom:16px}
+.card h2{font-family:var(--font-display);font-size:20px;font-weight:600;margin-bottom:16px;color:var(--text)}
+.input-row{display:flex;gap:10px;flex-wrap:wrap}
+input[type=text],input[type=number]{flex:1;min-width:140px;background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:10px 14px;color:var(--text);font-family:var(--font-body);font-size:15px;outline:none}
+input[type=text]:focus,input[type=number]:focus{border-color:var(--blue)}
+input[type=text]::placeholder,input[type=number]::placeholder{color:var(--muted)}
+.btn{padding:10px 20px;border-radius:8px;border:none;font-family:var(--font-display);font-size:15px;font-weight:600;letter-spacing:.5px;cursor:pointer;transition:all .12s}
+.btn-primary{background:var(--accent);color:#fff}
+.btn-primary:hover{opacity:.88}
+.btn-secondary{background:var(--surface2);color:var(--text);border:1px solid var(--border)}
+.btn-secondary:hover{border-color:var(--muted)}
+.btn-sm{padding:6px 14px;font-size:13px}
+.btn-danger{background:#3d1a1a;color:var(--red);border:1px solid #5a2020}
+.btn-danger:hover{background:#5a2020}
+
+select{background:var(--bg);border:1px solid var(--border);border-radius:8px;padding:10px 12px;color:var(--text);font-family:var(--font-body);font-size:14px;outline:none;cursor:pointer}
+select:focus{border-color:var(--blue)}
+
+.elim-badge{font-size:11px;background:#3d1a1a;color:var(--red);padding:2px 8px;border-radius:4px;font-weight:600;letter-spacing:.5px}
+.alive-badge{font-size:11px;background:#1a3d2b;color:var(--green);padding:2px 8px;border-radius:4px;font-weight:600;letter-spacing:.5px}
+
+.standings-table{width:100%;border-collapse:collapse}
+.standings-table th{font-family:var(--font-display);font-size:13px;font-weight:600;letter-spacing:.5px;color:var(--muted);text-align:left;padding:8px 12px;border-bottom:1px solid var(--border)}
+.standings-table td{padding:10px 12px;border-bottom:1px solid var(--surface2);font-size:14px;vertical-align:middle}
+.standings-table tr:last-child td{border-bottom:none}
+.standings-table tr.eliminated-row td{opacity:.45}
+.rank-num{font-family:var(--font-display);font-size:22px;font-weight:700;color:var(--muted);width:40px}
+.rank-num.top{color:var(--gold)}
+
+.pick-pill{font-size:11px;padding:2px 7px;border-radius:4px;font-weight:500;white-space:nowrap}
+.pick-win{background:#1a3d2b;color:var(--green)}
+.pick-pending{background:#0d2137;color:var(--blue)}
+.pick-loss{background:#3d1a1a;color:var(--red)}
+.pick-none{background:var(--surface2);color:var(--muted)}
+
+.games-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:10px;margin-top:12px}
+.game-card{background:var(--surface2);border:1px solid var(--border);border-radius:10px;padding:14px}
+
+.team-result-row{display:flex;align-items:center;gap:8px;margin-bottom:6px}
+.team-result-row:last-child{margin-bottom:0}
+.team-label{flex:1;font-size:14px}
+.result-btns{display:flex;gap:4px}
+.result-btn{padding:4px 10px;font-size:12px;font-family:var(--font-display);font-weight:600;border:1px solid var(--border);border-radius:5px;cursor:pointer;background:transparent;color:var(--muted);transition:all .12s}
+.result-btn.win{background:#1a3d2b;color:var(--green);border-color:#2d6b42}
+.result-btn.loss{background:#3d1a1a;color:var(--red);border-color:#6b2d2d}
+.result-btn:hover:not(.win):not(.loss){background:var(--surface);color:var(--text)}
+
+.day-nav{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:20px}
+.day-btn{padding:6px 14px;font-size:13px;font-family:var(--font-display);font-weight:600;border-radius:6px;cursor:pointer;border:1px solid var(--border);background:transparent;color:var(--muted);transition:all .12s}
+.day-btn.active{background:var(--accent);color:#fff;border-color:var(--accent)}
+.day-btn:hover:not(.active){background:var(--surface2);color:var(--text)}
+
+.empty-state{text-align:center;padding:40px 20px;color:var(--muted);font-size:14px}
+.winner-banner{background:#1a1a00;border:1px solid var(--gold);border-radius:12px;padding:20px;text-align:center;margin-bottom:20px}
+.winner-banner h2{font-family:var(--font-display);font-size:32px;color:var(--gold);margin-bottom:4px}
+.winner-banner p{color:var(--muted);font-size:14px}
+
+.msg{padding:10px 14px;border-radius:8px;margin-bottom:12px;font-size:14px}
+.msg-success{background:#1a3d2b;color:var(--green);border:1px solid #2d6b42}
+.msg-error{background:#3d1a1a;color:var(--red);border:1px solid #6b2d2d}
+.msg-info{background:#0d2137;color:var(--blue);border:1px solid #1a4d7a}
+
+.rules-box{background:var(--surface2);border-left:3px solid var(--accent);border-radius:0 8px 8px 0;padding:14px 16px;margin-bottom:20px;font-size:13px;color:var(--muted);line-height:1.7}
+.rules-box strong{color:var(--text)}
+</style>
+</head>
+<body>
+<div class="app">
+  <div class="header">
+    <h1>MARCH SURVIVOR</h1>
+    <p>Pick a team each day. Win to survive. Last one standing takes all.</p>
+  </div>
+
+  <div class="tabs">
+    <button class="tab active" onclick="showTab('picks')">My Pick</button>
+    <button class="tab" onclick="showTab('standings')">Standings</button>
+    <button class="tab" onclick="showTab('admin')">Admin</button>
+  </div>
+
+  <div id="tab-picks" class="section visible">
+    <div class="rules-box">
+      <strong>How it works:</strong> Enter your name and pick one team each day before games tip off. If your team wins, you survive to the next day. You can never reuse a team. Last survivor(s) win the pool.
+    </div>
+    <div id="picks-content"></div>
+  </div>
+
+  <div id="tab-standings" class="section">
+    <div id="standings-content"></div>
+  </div>
+
+  <div id="tab-admin" class="section">
+    <div class="card">
+      <h2>Add today's games</h2>
+      <p style="font-size:13px;color:var(--muted);margin-bottom:14px">Enter each matchup. Players will only be able to pick teams from today's games.</p>
+      <div style="display:flex;gap:10px;flex-wrap:wrap;margin-bottom:16px">
+        <input id="admin-day" type="number" min="1" max="20" value="1" style="width:80px;flex:none" placeholder="Day"/>
+        <input id="admin-team1" type="text" placeholder="Team A (e.g. Duke)" style="flex:1;min-width:120px"/>
+        <input id="admin-team2" type="text" placeholder="Team B (e.g. Auburn)" style="flex:1;min-width:120px"/>
+        <button class="btn btn-secondary btn-sm" onclick="addGame()">Add game</button>
+      </div>
+      <div id="admin-games-list"></div>
+    </div>
+
+    <div class="card">
+      <h2>Mark results</h2>
+      <p style="font-size:13px;color:var(--muted);margin-bottom:14px">Click W or L for each team. Marking a winner auto-marks the opponent as a loss and eliminates players accordingly.</p>
+      <div class="day-nav" id="admin-day-nav"></div>
+      <div id="admin-results"></div>
+    </div>
+
+    <div class="card">
+      <h2>Commissioner controls</h2>
+      <div style="display:flex;gap:10px;flex-wrap:wrap">
+        <button class="btn btn-secondary btn-sm" onclick="advanceDay()">Advance to next day</button>
+        <button class="btn btn-danger btn-sm" onclick="resetAll()">Reset all data</button>
+      </div>
+      <p style="font-size:12px;color:var(--muted);margin-top:10px">Advancing the day opens pick submissions for the next day. Reset wipes everything.</p>
+    </div>
+  </div>
+</div>
+
+<script>
+const STORAGE_KEY = 'march_survivor_v2';
+
+function loadState() {
+  try {
+    const raw = localStorage.getItem(STORAGE_KEY);
+    if (raw) return JSON.parse(raw);
+  } catch(e) {}
+  return { currentDay: 1, players: {}, games: {}, results: {} };
+}
+
+function saveState(s) {
+  localStorage.setItem(STORAGE_KEY, JSON.stringify(s));
+}
+
+let state = loadState();
+
+function showTab(name) {
+  const names = ['picks','standings','admin'];
+  document.querySelectorAll('.tab').forEach((t,i) => t.classList.toggle('active', names[i]===name));
+  document.querySelectorAll('.section').forEach((s,i) => s.classList.toggle('visible', names[i]===name));
+  if (name==='picks') renderPicks();
+  if (name==='standings') renderStandings();
+  if (name==='admin') renderAdmin();
+}
+
+function getGamesForDay(day) { return state.games[day] || []; }
+
+function getAllTeamsForDay(day) {
+  const teams = [];
+  getGamesForDay(day).forEach(g => { teams.push(g.team1, g.team2); });
+  return teams;
+}
+
+function getUsedTeams(name) {
+  const p = state.players[name];
+  if (!p) return [];
+  return Object.values(p.picks || {});
+}
+
+function getPickForDay(name, day) {
+  const p = state.players[name];
+  if (!p) return null;
+  return (p.picks || {})[day] || null;
+}
+
+function checkEliminations() {
+  Object.keys(state.players).forEach(name => {
+    const p = state.players[name];
+    if (p.eliminated) return;
+    Object.keys(p.picks || {}).forEach(day => {
+      const pick = p.picks[day];
+      const results = state.results[day] || {};
+      if (pick && results[pick] === false) {
+        p.eliminated = true;
+        p.eliminatedDay = parseInt(day);
+      }
+    });
+  });
+  saveState(state);
+}
+
+function renderPicks() {
+  const el = document.getElementById('picks-content');
+  const day = state.currentDay;
+  const teams = getAllTeamsForDay(day);
+
+  let html = `<div class="day-banner">
+    <div>
+      <div class="day-label">Day ${day}</div>
+      <div class="day-sub">Submit your pick before games tip off</div>
+    </div>
+    <div class="lock-info">${teams.length > 0 ? teams.length + ' game' + (teams.length!==1?'s':'') + ' today' : 'No games added yet'}</div>
+  </div>`;
+
+  html += `<div class="card">
+    <h2>Enter your name to submit a pick</h2>
+    <div class="input-row">
+      <input type="text" id="pick-name" placeholder="Your name" onkeydown="if(event.key==='Enter')loadPlayerPick()"/>
+      <button class="btn btn-primary" onclick="loadPlayerPick()">Load my pick</button>
+    </div>
+    <div id="player-pick-area" style="margin-top:16px"></div>
+  </div>`;
+
+  el.innerHTML = html;
+}
+
+function loadPlayerPick() {
+  const name = document.getElementById('pick-name').value.trim();
+  if (!name) return;
+  const area = document.getElementById('player-pick-area');
+  const day = state.currentDay;
+  const teams = getAllTeamsForDay(day);
+
+  if (!state.players[name]) {
+    state.players[name] = { picks: {}, eliminated: false };
+    saveState(state);
+  }
+
+  checkEliminations();
+  const p = state.players[name];
+
+  if (p.eliminated) {
+    area.innerHTML = `<div class="msg msg-error">Sorry ${name} — you were eliminated on Day ${p.eliminatedDay}. Better luck next year!</div>`;
+    return;
+  }
+
+  const used = getUsedTeams(name);
+  const currentPick = getPickForDay(name, day);
+  const results = state.results[day] || {};
+  const dayHasResults = Object.keys(results).length > 0;
+
+  let html = `<div style="margin-bottom:12px;font-size:13px;color:var(--muted)">
+    Teams already used: ${used.length > 0
+      ? used.map(t=>`<span style="background:var(--surface2);padding:2px 8px;border-radius:4px;margin:0 2px;font-size:12px">${t}</span>`).join('')
+      : '<em>none yet</em>'}
+  </div>`;
+
+  if (teams.length === 0) {
+    area.innerHTML = html + `<div class="msg msg-error">No games have been added for Day ${day} yet. Check back soon.</div>`;
+    return;
+  }
+
+  if (dayHasResults && currentPick) {
+    const won = results[currentPick];
+    if (won === true) {
+      html += `<div class="msg msg-success">You picked <strong>${currentPick}</strong> — they won! You survive to Day ${day+1}.</div>`;
+    } else if (won === false) {
+      html += `<div class="msg msg-error">You picked <strong>${currentPick}</strong> — they lost. You've been eliminated.</div>`;
+    } else {
+      html += `<div class="msg msg-info">You picked <strong>${currentPick}</strong> — results still pending.</div>`;
+    }
+    area.innerHTML = html;
+    return;
+  }
+
+  const available = teams.filter(t => !used.includes(t) || t === currentPick);
+
+  if (available.length === 0) {
+    area.innerHTML = html + `<div class="msg msg-error">You've already used every team playing today. You may be unable to pick for this day.</div>`;
+    return;
+  }
+
+  html += `<div style="margin-bottom:10px;font-size:14px;font-weight:500">Pick your team for Day ${day}:</div>`;
+  html += `<div style="display:flex;gap:10px;flex-wrap:wrap">`;
+  html += `<select id="team-select" style="flex:1;min-width:200px">`;
+  html += `<option value="">— choose a team —</option>`;
+  available.forEach(t => {
+    html += `<option value="${t}" ${t===currentPick?'selected':''}>${t}</option>`;
+  });
+  html += `</select>`;
+  html += `<button class="btn btn-primary" onclick="submitPick('${name.replace(/'/g,"\\'")}')">Lock it in</button>`;
+  html += `</div>`;
+
+  if (currentPick) {
+    html += `<div style="margin-top:10px;font-size:13px;color:var(--blue)">Current pick: <strong>${currentPick}</strong> — you can change this until results are posted.</div>`;
+  }
+
+  area.innerHTML = html;
+}
+
+function submitPick(name) {
+  const select = document.getElementById('team-select');
+  const team = select ? select.value : '';
+  if (!team) { alert('Please select a team first.'); return; }
+  const day = state.currentDay;
+  if (!state.players[name]) state.players[name] = { picks: {}, eliminated: false };
+  state.players[name].picks[day] = team;
+  saveState(state);
+  const area = document.getElementById('player-pick-area');
+  area.innerHTML = `<div class="msg msg-success">Pick locked in: <strong>${team}</strong> for Day ${day}. Good luck!</div>
+    <button class="btn btn-secondary btn-sm" style="margin-top:8px" onclick="loadPlayerPick()">Change pick</button>`;
+}
+
+function renderStandings() {
+  const el = document.getElementById('standings-content');
+  checkEliminations();
+  const players = Object.entries(state.players);
+
+  if (players.length === 0) {
+    el.innerHTML = `<div class="empty-state">No players yet. Share this page with your group and have them enter picks!</div>`;
+    return;
+  }
+
+  const alive = players.filter(([n,p]) => !p.eliminated);
+  const dead = players.filter(([n,p]) => p.eliminated).sort((a,b) => (b[1].eliminatedDay||0)-(a[1].eliminatedDay||0));
+  const maxDay = state.currentDay;
+  const dayHeaders = Array.from({length: maxDay}, (_,i) => i+1);
+
+  let html = '';
+
+  if (alive.length === 1) {
+    html += `<div class="winner-banner"><h2>🏆 ${alive[0][0]} wins!</h2><p>Last survivor standing — they take the pool.</p></div>`;
+  } else if (alive.length === 0 && dead.length > 0) {
+    html += `<div class="winner-banner" style="border-color:var(--red);background:#1a0000"><h2 style="color:var(--red)">Everyone eliminated!</h2><p>Consider it a push — reset and try again next year.</p></div>`;
+  }
+
+  html += `<div class="card"><h2 style="margin-bottom:14px">Standings — Day ${state.currentDay}</h2>
+    <div style="overflow-x:auto"><table class="standings-table">
+    <thead><tr>
+      <th style="width:32px">#</th>
+      <th>Player</th>
+      <th>Status</th>
+      ${dayHeaders.map(d=>`<th style="white-space:nowrap">Day ${d}</th>`).join('')}
+    </tr></thead><tbody>`;
+
+  const sorted = [...alive, ...dead];
+  sorted.forEach(([name, p], idx) => {
+    const isOut = p.eliminated;
+    html += `<tr class="${isOut?'eliminated-row':''}">
+      <td class="rank-num ${idx<3&&!isOut?'top':''}">${idx+1}</td>
+      <td style="font-family:'Barlow Condensed',sans-serif;font-size:17px;font-weight:600">${name}</td>
+      <td>${isOut
+        ? `<span class="elim-badge">OUT D${p.eliminatedDay}</span>`
+        : `<span class="alive-badge">ALIVE</span>`}</td>
+      ${dayHeaders.map(d => {
+        const pick = (p.picks||{})[d];
+        const r = (state.results[d]||{})[pick];
+        if (!pick) return `<td><span class="pick-pill pick-none">—</span></td>`;
+        if (r === true) return `<td><span class="pick-pill pick-win">${pick}</span></td>`;
+        if (r === false) return `<td><span class="pick-pill pick-loss">${pick}</span></td>`;
+        return `<td><span class="pick-pill pick-pending">${pick}</span></td>`;
+      }).join('')}
+    </tr>`;
+  });
+
+  html += `</tbody></table></div></div>`;
+  el.innerHTML = html;
+}
+
+function renderAdmin() {
+  const el = document.getElementById('admin-games-list');
+  const days = Object.keys(state.games).map(Number).sort((a,b)=>a-b);
+
+  if (days.length === 0) {
+    el.innerHTML = `<div style="font-size:13px;color:var(--muted)">No games added yet.</div>`;
+  } else {
+    let html = '';
+    days.forEach(day => {
+      const games = state.games[day];
+      html += `<div style="margin-bottom:12px">
+        <div style="font-size:12px;color:var(--muted);font-family:'Barlow Condensed',sans-serif;font-weight:600;letter-spacing:.5px;margin-bottom:6px">DAY ${day} — ${games.length} game${games.length!==1?'s':''}</div>`;
+      games.forEach((g,i) => {
+        html += `<div style="display:flex;align-items:center;gap:8px;margin-bottom:4px;font-size:13px">
+          <span>${g.team1} vs ${g.team2}</span>
+          <button class="btn btn-danger btn-sm" style="font-size:11px;padding:2px 8px" onclick="removeGame(${day},${i})">Remove</button>
+        </div>`;
+      });
+      html += `</div>`;
+    });
+    el.innerHTML = html;
+  }
+
+  const navEl = document.getElementById('admin-day-nav');
+  if (days.length === 0) {
+    navEl.innerHTML = `<div style="font-size:13px;color:var(--muted)">Add games to see results here.</div>`;
+  } else {
+    navEl.innerHTML = days.map(d =>
+      `<button class="day-btn ${d===state.currentDay?'active':''}" onclick="setAdminDay(${d})">Day ${d}</button>`
+    ).join('');
+  }
+
+  renderAdminResults(state.currentDay);
+  document.getElementById('admin-day').value = state.currentDay;
+}
+
+function setAdminDay(day) {
+  document.querySelectorAll('.day-btn').forEach(b => {
+    b.classList.toggle('active', b.textContent.trim() === `Day ${day}`);
+  });
+  renderAdminResults(day);
+}
+
+function renderAdminResults(day) {
+  const el = document.getElementById('admin-results');
+  const games = getGamesForDay(day);
+  if (games.length === 0) {
+    el.innerHTML = `<div style="font-size:13px;color:var(--muted)">No games for this day.</div>`;
+    return;
+  }
+  const results = state.results[day] || {};
+  let html = `<div class="games-grid">`;
+  games.forEach(g => {
+    [g.team1, g.team2].forEach(team => {
+      const won = results[team];
+      html += `<div class="game-card"><div class="team-result-row">
+        <span class="team-label">${team}</span>
+        <div class="result-btns">
+          <button class="result-btn ${won===true?'win':''}" onclick="setResult(${day},'${team.replace(/'/g,"\\'")}',true)">W</button>
+          <button class="result-btn ${won===false?'loss':''}" onclick="setResult(${day},'${team.replace(/'/g,"\\'")}',false)">L</button>
+        </div>
+      </div></div>`;
+    });
+  });
+  html += `</div>`;
+  el.innerHTML = html;
+}
+
+function setResult(day, team, won) {
+  if (!state.results[day]) state.results[day] = {};
+  state.results[day][team] = won;
+  getGamesForDay(day).forEach(g => {
+    if (g.team1 === team && !state.results[day].hasOwnProperty(g.team2)) state.results[day][g.team2] = !won;
+    if (g.team2 === team && !state.results[day].hasOwnProperty(g.team1)) state.results[day][g.team1] = !won;
+  });
+  checkEliminations();
+  saveState(state);
+  renderAdminResults(day);
+}
+
+function addGame() {
+  const day = parseInt(document.getElementById('admin-day').value);
+  const t1 = document.getElementById('admin-team1').value.trim();
+  const t2 = document.getElementById('admin-team2').value.trim();
+  if (!t1 || !t2) { alert('Enter both team names.'); return; }
+  if (t1.toLowerCase() === t2.toLowerCase()) { alert('Teams must be different.'); return; }
+  if (!state.games[day]) state.games[day] = [];
+  state.games[day].push({ team1: t1, team2: t2 });
+  saveState(state);
+  document.getElementById('admin-team1').value = '';
+  document.getElementById('admin-team2').value = '';
+  renderAdmin();
+}
+
+function removeGame(day, idx) {
+  state.games[day].splice(idx, 1);
+  if (state.games[day].length === 0) delete state.games[day];
+  saveState(state);
+  renderAdmin();
+}
+
+function advanceDay() {
+  state.currentDay++;
+  saveState(state);
+  document.getElementById('admin-day').value = state.currentDay;
+  renderAdmin();
+  alert('Advanced to Day ' + state.currentDay + '. Players can now submit their Day ' + state.currentDay + ' picks.');
+}
+
+function resetAll() {
+  if (!confirm('This will permanently delete all players, picks, games, and results. Are you sure?')) return;
+  state = { currentDay: 1, players: {}, games: {}, results: {} };
+  saveState(state);
+  renderAdmin();
+  alert('All data has been reset.');
+}
+
+renderPicks();
+</script>
+</body>
+</html>
